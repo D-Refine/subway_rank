@@ -23,7 +23,12 @@ const mainHomeButton = document.getElementById('mainHomeButton');
 
 // --- Telegram WebApp 초기화 ---
 const WebApp = window.Telegram.WebApp;
-WebApp.ready();
+if (WebApp && WebApp.ready) { // WebApp 객체 존재 확인
+    WebApp.ready();
+} else {
+    console.warn("Telegram WebApp API (WebApp.ready) is not available. Game might not interact with Telegram.");
+}
+
 
 // --- 게임 상태 및 설정 변수 ---
 let score = 0;
@@ -76,52 +81,64 @@ const quests = {
 };
 let currentGameStats = {};
 
-// --- ⭐️ Canvas 크기 조절 함수 정의 (다른 주요 함수들보다 앞에 위치) ---
+// --- Canvas 크기 조절 함수 ---
 function resizeCanvas() {
     if (!gameContainer || !canvas) {
         console.error("Error: gameContainer or canvas element not found for resizeCanvas.");
         return;
     }
     const containerRect = gameContainer.getBoundingClientRect();
-    
-    // gameContainer가 화면에 표시되어 유효한 크기를 가질 때만 업데이트
-    // 이 함수는 gameContainer가 'show' 클래스를 가진 후 호출되는 것이 가장 이상적입니다.
     if (containerRect.width > 0 && containerRect.height > 0) {
         canvas.width = containerRect.width;
         canvas.height = containerRect.height;
         console.log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
     } else {
-        console.warn("resizeCanvas called while gameContainer might be hidden or has no dimensions. Canvas might not be sized correctly until game starts.");
-        // 필요하다면, 화면 전환 직후에 이 함수를 다시 호출하는 로직을 startGame 등에 추가합니다.
-        // (현재는 startGame 함수 내에서 호출하도록 변경했습니다.)
+        console.warn("resizeCanvas called while gameContainer might be hidden or has no dimensions. Canvas might not be sized correctly until game starts or gameContainer is visible.");
     }
 }
 
 // --- 데이터 저장/로드 함수 ---
 function saveData() {
-    localStorage.setItem('rankingSlasher_gems', playerGems.toString());
-    const completedQuestsStatus = {};
-    for (const questId in quests) {
-        completedQuestsStatus[questId] = quests[questId].isCompleted;
+    try {
+        localStorage.setItem('rankingSlasher_gems', playerGems.toString());
+        const completedQuestsStatus = {};
+        for (const questId in quests) {
+            if (quests.hasOwnProperty(questId)) {
+                completedQuestsStatus[questId] = quests[questId].isCompleted;
+            }
+        }
+        localStorage.setItem('rankingSlasher_quests', JSON.stringify(completedQuestsStatus));
+        console.log("Data saved:", {gems: playerGems, quests: completedQuestsStatus});
+    } catch (e) {
+        console.error("Error saving data to localStorage:", e);
     }
-    localStorage.setItem('rankingSlasher_quests', JSON.stringify(completedQuestsStatus));
-    console.log("Data saved:", {gems: playerGems, quests: completedQuestsStatus});
 }
 
 function loadData() {
-    const savedGems = localStorage.getItem('rankingSlasher_gems');
-    if (savedGems !== null) {
-        playerGems = parseInt(savedGems, 10);
-    } else {
-        playerGems = 0; 
-    }
-    const savedQuestsStatus = localStorage.getItem('rankingSlasher_quests');
-    if (savedQuestsStatus) {
-        const completedStatus = JSON.parse(savedQuestsStatus);
-        for (const questId in quests) {
-            if (quests.hasOwnProperty(questId) && completedStatus.hasOwnProperty(questId)) {
-                quests[questId].isCompleted = completedStatus[questId];
+    try {
+        const savedGems = localStorage.getItem('rankingSlasher_gems');
+        if (savedGems !== null) {
+            playerGems = parseInt(savedGems, 10);
+            if (isNaN(playerGems)) playerGems = 0; // NaN 방지
+        } else {
+            playerGems = 0; 
+        }
+
+        const savedQuestsStatus = localStorage.getItem('rankingSlasher_quests');
+        if (savedQuestsStatus) {
+            const completedStatus = JSON.parse(savedQuestsStatus);
+            for (const questId in quests) {
+                if (quests.hasOwnProperty(questId) && completedStatus.hasOwnProperty(questId)) {
+                    quests[questId].isCompleted = completedStatus[questId];
+                }
             }
+        }
+    } catch (e) {
+        console.error("Error loading data from localStorage:", e);
+        playerGems = 0; // 오류 시 기본값으로 초기화
+        // 퀘스트 상태도 필요하다면 기본값으로 초기화
+        for (const questId in quests) {
+            if (quests.hasOwnProperty(questId)) quests[questId].isCompleted = false;
         }
     }
     updateGemDisplay();
@@ -132,13 +149,24 @@ function loadData() {
 function updateGemDisplay() {
     if (gemBalanceDisplaySpan) {
         gemBalanceDisplaySpan.textContent = playerGems;
+    } else {
+        console.warn("gemBalanceDisplaySpan not found.");
     }
 }
 
 function showScreen(screenToShow) {
-    document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('show'));
+    // ⭐️ 디버깅 로그 추가
+    console.log("showScreen called for:", screenToShow ? screenToShow.id : "a null screen");
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('show');
+    });
     if (screenToShow) {
         screenToShow.classList.add('show');
+        // ⭐️ 디버깅 로그 추가
+        console.log(screenToShow.id + " classList after adding 'show':", screenToShow.classList.toString());
+        console.log(screenToShow.id + " display style:", window.getComputedStyle(screenToShow).display);
+    } else {
+        console.warn("showScreen called with null screenToShow");
     }
 }
 
@@ -151,25 +179,39 @@ function resetCurrentGameStats() {
 }
 
 function checkAndAwardQuests() {
+    console.log("Checking quests. Current game stats:", currentGameStats); // ⭐️ 퀘스트 확인 시작 로그
     let questMessagesHtml = ""; let newGemsEarned = 0;
     currentGameStats.score = score; 
     for (const questId in quests) {
-        const quest = quests[questId];
-        if (!quest.isCompleted && quest.conditionMet(currentGameStats)) {
-            quest.isCompleted = true; playerGems += quest.reward; newGemsEarned += quest.reward;
-            const message = `🏆 Quest Complete: ${quest.name} (+${quest.reward} Gems!)`;
-            console.log(message); questMessagesHtml += `<p>${message}</p>`;
+        if (quests.hasOwnProperty(questId)) {
+            const quest = quests[questId];
+            if (!quest.isCompleted && quest.conditionMet(currentGameStats)) {
+                quest.isCompleted = true; playerGems += quest.reward; newGemsEarned += quest.reward;
+                const message = `🏆 Quest Complete: ${quest.name} (+${quest.reward} Gems!)`;
+                console.log(message); questMessagesHtml += `<p>${message}</p>`;
+            }
         }
     }
-    if (questCompletionMessagesDiv) { questCompletionMessagesDiv.innerHTML = questMessagesHtml; }
-    if (newGemsEarned > 0) { updateGemDisplay(); saveData(); }
+    if (questCompletionMessagesDiv) { 
+        questCompletionMessagesDiv.innerHTML = questMessagesHtml; 
+        console.log("Quest messages updated to DOM.");
+    } else {
+        console.warn("questCompletionMessagesDiv not found.");
+    }
+    if (newGemsEarned > 0) { 
+        updateGemDisplay(); 
+        saveData(); 
+        console.log("New gems earned and data saved.");
+    } else {
+        console.log("No new quests completed in this session.");
+    }
 }
 
-// --- 게임 요소 클래스 정의 (Villain, Particle, SliceParticle) ---
+// --- 게임 요소 클래스 정의 ---
 class Villain { 
     constructor(x, y, radius, color, velocity, isGoldRush = false, isLifeBonus = false, isBomb = false, isIce = false) {
         this.x = x; this.y = y; this.radius = radius; this.originalColor = color; 
-        this.velocity = velocity; this.sliced = false; this.gravity = 0.05 * (canvas.height / 800); 
+        this.velocity = velocity; this.sliced = false; this.gravity = 0.05 * (canvas.height > 0 ? canvas.height / 800 : 0.05); // canvas.height가 0일 경우 방지
         this.rotation = Math.random() * Math.PI * 2; this.rotationSpeed = (Math.random() - 0.5) * 0.1; 
         this.spawnTime = Date.now(); this.isGoldRushCoin = isGoldRush; this.isLifeBonusCoin = isLifeBonus;
         this.isBombCoin = isBomb; this.isIceCoin = isIce;
@@ -201,9 +243,10 @@ class Villain {
     }
     update() { this.x += this.velocity.x * gameSpeed; this.y += this.velocity.y * gameSpeed; this.velocity.y += this.gravity * gameSpeed; this.rotation += this.rotationSpeed * gameSpeed; if (!this.sliced) this.draw(); }
 }
+
 function spawnVillain(forceNormal = false) {
     if (gameOver && !isGoldRushActive) return; if (isGoldRushActive && Date.now() > goldRushEndTime) { isGoldRushActive = false; console.log("Gold Rush ended during spawn attempt."); return; }
-    if(!canvas || canvas.width === 0 || canvas.height === 0) return; // 캔버스 크기 없으면 스폰 안 함
+    if(!canvas || canvas.width === 0 || canvas.height === 0) { console.warn("Canvas not ready for spawning villains."); return; }
 
     const radius = Math.random() * (canvas.width * 0.04) + (canvas.width * 0.055); const side = Math.floor(Math.random() * 3); let x, y; let velocityX, velocityY; const speedMultiplier = canvas.height / 800;
     if (side === 0) { x = 0 - radius; y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2); velocityX = (Math.random() * 1.5 + 1.5) * speedMultiplier; velocityY = (Math.random() * -2.5 - 3.5) * speedMultiplier; }
@@ -219,6 +262,7 @@ function spawnVillain(forceNormal = false) {
     if (isThisAGoldRushCoin) villainColor = goldRushCoinColor; else if (isThisAnExtraLifeCoin) villainColor = lifeBonusCoinColor; else if (isThisABombCoin) villainColor = bombCoinColor; else if (isThisAnIceCoin) villainColor = iceCoinColor; else villainColor = `hsl(${Math.random() * 60 + 25}, 100%, 60%)`; 
     villains.push(new Villain(x, y, radius, villainColor, { x: velocityX, y: velocityY }, isThisAGoldRushCoin, isThisAnExtraLifeCoin, isThisABombCoin, isThisAnIceCoin));
 }
+
 class Particle { constructor(x, y, color, sizeMultiplier = 1) { this.x = x; this.y = y; this.size = (Math.random() * 3 + 2) * sizeMultiplier; this.color = color; this.velocity = { x: (Math.random() - 0.5) * (Math.random() * 8), y: (Math.random() - 0.5) * (Math.random() * 8) }; this.alpha = 1; this.friction = 0.97; this.gravity = 0.1;} draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.velocity.x *= this.friction; this.velocity.y *= this.friction; this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.03; if (this.alpha > 0) this.draw(); }}
 class SliceParticle { constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`; this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 }; this.alpha = 1; } draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.05; if (this.alpha > 0) this.draw(); }}
 function updateAndDrawParticles(particleArray) { for (let i = particleArray.length - 1; i >= 0; i--) { particleArray[i].update(); if (particleArray[i].alpha <= 0) particleArray.splice(i, 1); }}
@@ -228,11 +272,23 @@ function resetCombo() { if (currentComboCount > 0) { console.log(`Combo reset fr
 
 // --- 게임 루프 및 핵심 로직 ---
 function gameLoop() { 
+    console.log("gameLoop running, frame:", frameCount, "gameOver:", gameOver, "isFrozen:", isFrozen); // ⭐️ 디버깅 로그
     if (gameOver) {
-        cancelAnimationFrame(animationFrameId); showGameOverScreen(); 
-        isGoldRushActive = false; isFrozen = false; resetCombo(); return;
+        console.log("gameLoop: gameOver is true. Calling cancelAnimationFrame and showGameOverScreen."); // ⭐️ 디버깅 로그
+        cancelAnimationFrame(animationFrameId); 
+        showGameOverScreen(); 
+        isGoldRushActive = false; isFrozen = false; resetCombo(); 
+        return; 
     }
-    ctx.clearRect(0, 0, canvas.width, canvas.height); frameCount++;
+    if (!canvas || canvas.width === 0 || canvas.height === 0) { // 캔버스 준비 안됐으면 그리지 않음
+        console.warn("gameLoop: Canvas not ready or zero size. Requesting next frame.");
+        animationFrameId = requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    frameCount++;
+
     if (isFrozen && Date.now() > frozenEndTime) { isFrozen = false; console.log("Unfrozen!"); }
     if (isGoldRushActive) {
          if (Date.now() > goldRushEndTime) { isGoldRushActive = false; console.log("Gold Rush Ended!"); }
@@ -327,9 +383,11 @@ function checkSliceCollisions() {
 }
 
 function startGame() {
+    console.log("startGame() function called"); // ⭐️ 로그
     score = 0; lives = 3; villains = []; particles = []; sliceParticles = [];
     sliceTrail = []; currentSlicePath = []; 
     gameOver = false; 
+    console.log("gameOver flag set to:", gameOver); // ⭐️ 로그
     isSlicing = false; gameSpeed = 1;
     isGoldRushActive = false; goldRushEndTime = 0; frameCount = 0; 
     isFrozen = false; frozenEndTime = 0;
@@ -340,63 +398,91 @@ function startGame() {
     scoreDisplay.textContent = score; 
     livesDisplay.textContent = lives;
 
-    if(questCompletionMessagesDiv) questCompletionMessagesDiv.innerHTML = ""; // 이전 퀘스트 메시지 지우기
+    if(questCompletionMessagesDiv) questCompletionMessagesDiv.innerHTML = ""; 
+    
     showScreen(gameContainer); 
-    resizeCanvas(); // ⭐️ 게임 화면이 보인 후 캔버스 크기 조절
+    console.log("showScreen(gameContainer) called"); // ⭐️ 로그
+    
+    // ⭐️ gameContainer가 화면에 표시된 후 resizeCanvas 호출
+    //    requestAnimationFrame을 사용하여 다음 프레임에 호출하면 DOM 업데이트 후 크기 계산이 더 정확할 수 있음
+    requestAnimationFrame(() => { 
+        resizeCanvas();
 
-    if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
-    window.villainSpawnInterval = setInterval(() => { if (!isGoldRushActive) { spawnVillain(); }}, Math.max(250, 750 - score * 1.5));
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    animationFrameId = requestAnimationFrame(gameLoop);
-    console.log("Game Started!");
+        // 악당 생성 인터벌 및 게임 루프 시작은 캔버스 크기가 확정된 후가 좋음
+        if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
+        window.villainSpawnInterval = setInterval(() => { if (!isGoldRushActive) { spawnVillain(); }}, Math.max(250, 750 - score * 1.5));
+        
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(gameLoop);
+        console.log("New animationFrameId requested for gameLoop.");
+    });
+    console.log("Game Started logic initiated!");
 }
 
 function showGameOverScreen() { 
-    finalScoreDisplay.textContent = score; 
+    console.log("showGameOverScreen() called. Final score:", score); // ⭐️ 로그 1
+    if(finalScoreDisplay) finalScoreDisplay.textContent = score; 
+    else console.warn("finalScoreDisplay element not found!");
+    console.log("finalScoreDisplay updated."); // ⭐️ 로그 2
+
     currentGameStats.score = score; 
     checkAndAwardQuests(); 
+    console.log("checkAndAwardQuests() completed."); // ⭐️ 로그 3
+
     showScreen(gameOverScreen); 
+    console.log("#gameOverScreen should be visible now. Check its style in Elements tab if not visible."); // ⭐️ 로그 4
+    
     if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
     isGoldRushActive = false; isFrozen = false; resetCombo(); 
+    
     try { 
-        if (WebApp && WebApp.sendData) { console.log("Attempting to send score to Telegram:", score); const scoreDataString = String(score); WebApp.sendData(scoreDataString); console.log("Score sent to Telegram successfully:", scoreDataString); }
-        else { console.error("Telegram WebApp API is not available or sendData is not defined."); }
+        if (WebApp && WebApp.sendData) { 
+            console.log("Attempting to send score to Telegram:", score); 
+            const scoreDataString = String(score); 
+            WebApp.sendData(scoreDataString); 
+            console.log("Score sent to Telegram successfully:", scoreDataString); 
+        } else { console.error("Telegram WebApp API is not available or sendData is not defined."); }
     } catch (e) { console.error("Error sending data to Telegram:", e); }
+    console.log("showGameOverScreen() finished."); // ⭐️ 로그 5
 }
 
 // --- 이벤트 리스너 ---
-canvas.addEventListener('mousedown', startSlicing); 
-canvas.addEventListener('mousemove', continueSlicing);
-canvas.addEventListener('mouseup', endSlicing);
-canvas.addEventListener('mouseleave', endSlicing);
-canvas.addEventListener('touchstart', startSlicing, { passive: false });
-canvas.addEventListener('touchmove', continueSlicing, { passive: false });
-canvas.addEventListener('touchend', endSlicing);
-canvas.addEventListener('touchcancel', endSlicing);
+if(canvas) { // canvas가 로드된 후에 이벤트 리스너 추가
+    canvas.addEventListener('mousedown', startSlicing); 
+    canvas.addEventListener('mousemove', continueSlicing);
+    canvas.addEventListener('mouseup', endSlicing);
+    canvas.addEventListener('mouseleave', endSlicing);
+    canvas.addEventListener('touchstart', startSlicing, { passive: false });
+    canvas.addEventListener('touchmove', continueSlicing, { passive: false });
+    canvas.addEventListener('touchend', endSlicing);
+    canvas.addEventListener('touchcancel', endSlicing);
+} else {
+    console.error("Canvas element not found for attaching event listeners.");
+}
+
 
 if (playGameButton) { 
     playGameButton.addEventListener('click', () => {
         console.log("Main Home Screen 'Play Game' button clicked!");
-        // resizeCanvas(); // startGame 내부에서 호출하도록 변경
         startGame(); 
     });
 }
-if (startButton) { // 기존 시작 버튼 (만약 사용한다면)
+if (startButton) { 
     startButton.addEventListener('click', () => {
         console.log("Old Start Screen 'Start Game' button clicked!");
-        // resizeCanvas(); // startGame 내부에서 호출하도록 변경
         startGame();
     });
 }
-restartButton.addEventListener('click', () => { 
-    console.log("Restart button clicked!");
-    // resizeCanvas(); // startGame 내부에서 호출하도록 변경
-    startGame();
-});
+if(restartButton) {
+    restartButton.addEventListener('click', () => { 
+        console.log("Restart button clicked!");
+        startGame();
+    });
+}
 if (mainHomeButton) { 
     mainHomeButton.addEventListener('click', () => {
         console.log("Game Over 'Home' button clicked!");
-        if(questCompletionMessagesDiv) questCompletionMessagesDiv.innerHTML = ""; // 홈으로 갈 때 퀘스트 메시지 지우기
+        if(questCompletionMessagesDiv) questCompletionMessagesDiv.innerHTML = ""; 
         showScreen(mainHomeScreen); 
     }); 
 }
@@ -406,12 +492,11 @@ if (shopButton) { shopButton.addEventListener('click', () => { alert("Shop comin
 window.addEventListener('resize', resizeCanvas);
 
 // --- 초기화 ---
-loadData(); // 저장된 젬과 퀘스트 상태 불러오기
-// resizeCanvas(); // ⭐️ 초기 호출은 startGame으로 이동 또는 DOMContentLoaded 후로 변경 고려
-updateComboDisplay(); 
-showScreen(mainHomeScreen); // 시작 시 메인 홈 화면 표시
-
-// DOM 완전히 로드 후 초기 resizeCanvas 호출 (더 안정적일 수 있음)
+// DOM이 완전히 로드된 후 초기화 로직 실행
 document.addEventListener('DOMContentLoaded', (event) => {
-    resizeCanvas(); // DOM 로드 후 컨테이너 크기가 확정될 가능성이 높음
+    console.log("DOM fully loaded and parsed");
+    loadData(); // 저장된 젬과 퀘스트 상태 불러오기
+    updateComboDisplay(); 
+    showScreen(mainHomeScreen); // 시작 시 메인 홈 화면 표시
+    resizeCanvas(); // DOM 로드 후, 홈 화면이 표시된 상태에서 캔버스 크기 초기 설정 시도 (gameContainer는 아직 숨겨져 있을 수 있음)
 });
