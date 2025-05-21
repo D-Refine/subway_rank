@@ -107,7 +107,7 @@ canvas {
     color: white;
     z-index: 10; /* 다른 화면 위에 오도록 */
     pointer-events: auto; /* 클릭 가능하도록 */
-    opacity: 0; visibility: hidden; /* 기본 숨김, .show로 제어 */
+    opacity: 1; visibility: visible; /* 기본 숨김, .show로 제어 */
     transition: opacity 0.3s ease, visibility 0.3s ease;
     /* padding은 .screen 에서 이미 상속 */
 }
