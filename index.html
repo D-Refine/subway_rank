@@ -6,6 +6,7 @@
     <title>지하철 코인 슬래셔 V3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: 'Press Start 2P', sans-serif;
@@ -167,6 +168,10 @@
         const startButton = document.getElementById('startButton');
         const gameContainer = document.getElementById('gameContainer');
 
+        // ⭐️ 2. Telegram WebApp 객체 가져오기 및 준비 완료 호출
+        const WebApp = window.Telegram.WebApp;
+        WebApp.ready(); // 웹앱 API 사용 준비 완료 알림
+
         let score = 0;
         let lives = 3;
         let gameSpeed = 1;
@@ -179,8 +184,8 @@
         let isSlicing = false;
         let currentSlicePath = [];
         let sliceTrail = [];
-        const SLICE_TRAIL_MAX_POINTS = 30; // 궤적 부드러움을 위한 최대 포인트 수
-        const SLICE_TRAIL_FADE_SPEED = 0.08; // 궤적 알파값 감소 속도
+        const SLICE_TRAIL_MAX_POINTS = 30;
+        const SLICE_TRAIL_FADE_SPEED = 0.08;
         const MIN_SLICE_POINTS = 2;
 
         function resizeCanvas() {
@@ -201,35 +206,26 @@
                 this.gravity = 0.05 * (canvas.height / 800);
                 this.rotation = Math.random() * Math.PI * 2;
                 this.rotationSpeed = (Math.random() - 0.5) * 0.1;
-                this.spawnTime = Date.now(); // 생성 시간 기록 (애니메이션용)
+                this.spawnTime = Date.now();
             }
-
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
-                
-                // 코인 등장 애니메이션 (선택적)
                 const timeSinceSpawn = Date.now() - this.spawnTime;
-                const scale = Math.min(1, timeSinceSpawn / 200); // 0.2초 동안 커짐
+                const scale = Math.min(1, timeSinceSpawn / 200);
                 ctx.scale(scale, scale);
-
                 ctx.beginPath();
                 ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
-                
-                // 코인 빛 효과 (그라데이션)
                 const gradient = ctx.createRadialGradient(0, 0, this.radius * 0.1, 0, 0, this.radius);
                 gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
                 gradient.addColorStop(0.6, this.color);
                 gradient.addColorStop(1, 'rgba(0,0,0,0.3)');
                 ctx.fillStyle = gradient;
                 ctx.fill();
-                
                 ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-                ctx.lineWidth = this.radius * 0.05; // 테두리 얇게
+                ctx.lineWidth = this.radius * 0.05;
                 ctx.stroke();
-                
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
                 ctx.font = `bold ${this.radius * 0.7}px 'Press Start 2P'`;
                 ctx.textAlign = 'center';
@@ -237,13 +233,12 @@
                 ctx.fillText('₩', 0, this.radius * 0.05);
                 ctx.restore();
             }
-
             update() {
                 this.x += this.velocity.x * gameSpeed;
                 this.y += this.velocity.y * gameSpeed;
                 this.velocity.y += this.gravity * gameSpeed;
                 this.rotation += this.rotationSpeed * gameSpeed;
-                if (!this.sliced) this.draw(); // 베이지 않았을 때만 그림
+                if (!this.sliced) this.draw();
             }
         }
 
@@ -254,172 +249,110 @@
             let x, y;
             let velocityX, velocityY;
             const speedMultiplier = canvas.height / 800;
-
             if (side === 0) {
-                x = 0 - radius;
-                y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2);
-                velocityX = (Math.random() * 1.5 + 1.5) * speedMultiplier; // 속도 약간 줄임
+                x = 0 - radius; y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2);
+                velocityX = (Math.random() * 1.5 + 1.5) * speedMultiplier; 
                 velocityY = (Math.random() * -2.5 - 3.5) * speedMultiplier;
             } else if (side === 1) {
-                x = Math.random() * (canvas.width - radius * 2) + radius;
-                y = canvas.height + radius;
+                x = Math.random() * (canvas.width - radius * 2) + radius; y = canvas.height + radius;
                 velocityX = (Math.random() - 0.5) * 3 * speedMultiplier;
                 velocityY = (Math.random() * -2.5 - 5.5) * speedMultiplier;
             } else {
-                x = canvas.width + radius;
-                y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2);
+                x = canvas.width + radius; y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2);
                 velocityX = (Math.random() * -1.5 - 1.5) * speedMultiplier;
                 velocityY = (Math.random() * -2.5 - 3.5) * speedMultiplier;
             }
-            const hue = Math.random() * 60 + 25; // 25(주황)~85(라임)
+            const hue = Math.random() * 60 + 25;
             const color = `hsl(${hue}, 100%, 60%)`;
             villains.push(new Villain(x, y, radius, color, { x: velocityX, y: velocityY }));
         }
 
-        class Particle { // 코인 터질 때 파티클
+        class Particle {
             constructor(x, y, color, sizeMultiplier = 1) {
-                this.x = x;
-                this.y = y;
-                this.size = (Math.random() * 3 + 2) * sizeMultiplier;
-                this.color = color;
-                this.velocity = {
-                    x: (Math.random() - 0.5) * (Math.random() * 8),
-                    y: (Math.random() - 0.5) * (Math.random() * 8)
-                };
-                this.alpha = 1;
-                this.friction = 0.97;
-                this.gravity = 0.1; // 파티클에도 약간의 중력
+                this.x = x; this.y = y;
+                this.size = (Math.random() * 3 + 2) * sizeMultiplier; this.color = color;
+                this.velocity = { x: (Math.random() - 0.5) * (Math.random() * 8), y: (Math.random() - 0.5) * (Math.random() * 8) };
+                this.alpha = 1; this.friction = 0.97; this.gravity = 0.1;
             }
             draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.restore();
+                ctx.fillStyle = this.color; ctx.fill(); ctx.restore();
             }
             update() {
-                this.velocity.x *= this.friction;
-                this.velocity.y *= this.friction;
-                this.velocity.y += this.gravity; // 중력 적용
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= 0.03;
-                if (this.alpha > 0) this.draw();
+                this.velocity.x *= this.friction; this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y;
+                this.alpha -= 0.03; if (this.alpha > 0) this.draw();
             }
         }
         
-        class SliceParticle { // 슬라이스 궤적용 파티클
+        class SliceParticle {
             constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 2 + 1; // 작게
-                this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`; // 반투명 흰색
-                this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 }; // 거의 안움직임
-                this.alpha = 1;
+                this.x = x; this.y = y;
+                this.size = Math.random() * 2 + 1; this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`;
+                this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 }; this.alpha = 1;
             }
             draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.restore();
+                ctx.fillStyle = this.color; ctx.fill(); ctx.restore();
             }
             update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= 0.05; // 빠르게 사라짐
-                if (this.alpha > 0) this.draw();
+                this.x += this.velocity.x; this.y += this.velocity.y;
+                this.alpha -= 0.05; if (this.alpha > 0) this.draw();
             }
         }
-
 
         function updateAndDrawParticles(particleArray) {
             for (let i = particleArray.length - 1; i >= 0; i--) {
                 particleArray[i].update();
-                if (particleArray[i].alpha <= 0) {
-                    particleArray.splice(i, 1);
-                }
+                if (particleArray[i].alpha <= 0) particleArray.splice(i, 1);
             }
         }
         
         function drawSliceTrail() {
             if (sliceTrail.length < 2) return;
-
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
             for (let i = 1; i < sliceTrail.length; i++) {
-                const p1 = sliceTrail[i-1];
-                const p2 = sliceTrail[i];
-                
-                // 각 세그먼트의 "나이" (0: 최신, 1: 가장 오래됨)
-                const age = (i / sliceTrail.length);
-                const alpha = Math.max(0, (1 - age) * 0.8); // 끝으로 갈수록 투명하게, 최대 0.8
-                const lineWidth = Math.max(1, (1 - age) * (canvas.width * 0.03)); // 끝으로 갈수록 가늘게, 최대 화면너비의 3%
-
+                const p1 = sliceTrail[i-1], p2 = sliceTrail[i];
+                const age = (i / sliceTrail.length), alpha = Math.max(0, (1 - age) * 0.8);
+                const lineWidth = Math.max(1, (1 - age) * (canvas.width * 0.03));
                 if (alpha <= 0 || lineWidth <= 0) continue;
-
-                ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-
-                // 화려한 그라데이션 또는 단색 빛 효과
+                ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
                 const trailGradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-                trailGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`); // 중심은 밝게
-                trailGradient.addColorStop(0.5, `rgba(139, 227, 255, ${alpha * 0.6})`); // 중간은 하늘색 빛
-                trailGradient.addColorStop(1, `rgba(74, 222, 128, ${alpha * 0.4})`);   // 끝은 초록색 빛
-                
-                ctx.strokeStyle = trailGradient;
-                ctx.lineWidth = lineWidth;
-                // 그림자 효과로 빛나는 느낌 추가
-                ctx.shadowColor = `rgba(139, 227, 255, ${alpha * 0.7})`; // 하늘색 빛
-                ctx.shadowBlur = lineWidth * 1.5; // 선 굵기에 비례한 그림자 크기
-                
+                trailGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`);
+                trailGradient.addColorStop(0.5, `rgba(139, 227, 255, ${alpha * 0.6})`);
+                trailGradient.addColorStop(1, `rgba(74, 222, 128, ${alpha * 0.4})`);
+                ctx.strokeStyle = trailGradient; ctx.lineWidth = lineWidth;
+                ctx.shadowColor = `rgba(139, 227, 255, ${alpha * 0.7})`; ctx.shadowBlur = lineWidth * 1.5;
                 ctx.stroke();
             }
-            // 그림자 초기화
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-
-            // 오래된 궤적 포인트 제거 (sliceTrail 자체를 줄여나감)
+            ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
             if (sliceTrail.length > 0) {
-                 sliceTrail.forEach(p => p.alpha = (p.alpha || 1) - SLICE_TRAIL_FADE_SPEED);
-                 sliceTrail = sliceTrail.filter(p => p.alpha > 0);
+                sliceTrail.forEach(p => p.alpha = (p.alpha || 1) - SLICE_TRAIL_FADE_SPEED);
+                sliceTrail = sliceTrail.filter(p => p.alpha > 0);
             }
         }
-
 
         function gameLoop() {
             if (gameOver) {
                 cancelAnimationFrame(animationFrameId);
-                showGameOverScreen();
+                showGameOverScreen(); // 여기가 게임 오버 시 호출되는 함수입니다.
                 return;
             }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             villains.forEach((villain, index) => {
                 villain.update();
                 if (villain.y - villain.radius > canvas.height && !villain.sliced) {
                     villains.splice(index, 1);
                     if (!gameOver) {
-                       lives--;
-                       livesDisplay.textContent = lives;
-                       if (lives <= 0) {
-                           gameOver = true;
-                       }
+                        lives--; livesDisplay.textContent = lives;
+                        if (lives <= 0) gameOver = true;
                     }
                 }
             });
-            
-            updateAndDrawParticles(particles); // 코인 터지는 파티클
-            updateAndDrawParticles(sliceParticles); // 슬라이스 궤적 파티클
-
+            updateAndDrawParticles(particles); updateAndDrawParticles(sliceParticles);
             drawSliceTrail();
-
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
@@ -431,119 +364,85 @@
         }
 
         function startSlicing(event) {
-            if (gameOver) return;
-            if (event.type.startsWith('touch')) event.preventDefault();
-
-            isSlicing = true;
-            const pos = getEventPosition(event);
-            currentSlicePath = [pos]; // 충돌 감지용 경로
-            sliceTrail = [{...pos, alpha: 1}]; // 화면에 그릴 궤적 (알파값 추가)
+            if (gameOver) return; if (event.type.startsWith('touch')) event.preventDefault();
+            isSlicing = true; const pos = getEventPosition(event);
+            currentSlicePath = [pos]; sliceTrail = [{...pos, alpha: 1}];
         }
 
         function continueSlicing(event) {
-            if (!isSlicing || gameOver) return;
-            if (event.type.startsWith('touch')) event.preventDefault();
-
-            const pos = getEventPosition(event);
-            currentSlicePath.push(pos);
-            
-            // sliceTrail 관리: 너무 많은 포인트가 쌓이지 않도록 하고, 새 포인트 추가
-            if (sliceTrail.length > SLICE_TRAIL_MAX_POINTS) {
-                sliceTrail.shift(); // 가장 오래된 포인트 제거
-            }
+            if (!isSlicing || gameOver) return; if (event.type.startsWith('touch')) event.preventDefault();
+            const pos = getEventPosition(event); currentSlicePath.push(pos);
+            if (sliceTrail.length > SLICE_TRAIL_MAX_POINTS) sliceTrail.shift();
             sliceTrail.push({...pos, alpha: 1});
-
-            // 슬라이스 중 미세 파티클 생성
-            if (Math.random() < 0.5) { // 50% 확률로 파티클 생성
-                sliceParticles.push(new SliceParticle(pos.x, pos.y));
-            }
+            if (Math.random() < 0.5) sliceParticles.push(new SliceParticle(pos.x, pos.y));
         }
 
         function endSlicing(event) {
-            if (!isSlicing || gameOver) return;
-            isSlicing = false;
-
-            if (currentSlicePath.length >= MIN_SLICE_POINTS) {
-                checkSliceCollisions();
-            }
+            if (!isSlicing || gameOver) return; isSlicing = false;
+            if (currentSlicePath.length >= MIN_SLICE_POINTS) checkSliceCollisions();
             currentSlicePath = [];
-            // sliceTrail은 gameLoop에서 alpha 값에 따라 자연스럽게 사라짐
         }
         
         function isLineIntersectingCircle(p1, p2, circleCenter, radius) {
-            const dx = p2.x - p1.x;
-            const dy = p2.y - p1.y;
-            const lenSq = dx * dx + dy * dy;
+            const dx = p2.x - p1.x, dy = p2.y - p1.y, lenSq = dx * dx + dy * dy;
             if (lenSq === 0) return Math.hypot(p1.x - circleCenter.x, p1.y - circleCenter.y) < radius;
             let t = ((circleCenter.x - p1.x) * dx + (circleCenter.y - p1.y) * dy) / lenSq;
             t = Math.max(0, Math.min(1, t));
-            const closestX = p1.x + t * dx;
-            const closestY = p1.y + t * dy;
+            const closestX = p1.x + t * dx, closestY = p1.y + t * dy;
             return Math.hypot(circleCenter.x - closestX, circleCenter.y - closestY) < radius;
         }
 
         function checkSliceCollisions() {
             let slicedThisTurn = 0;
             for (let i = villains.length - 1; i >= 0; i--) {
-                const villain = villains[i];
-                if (villain.sliced) continue;
-
+                const villain = villains[i]; if (villain.sliced) continue;
                 for (let j = 0; j < currentSlicePath.length - 1; j++) {
-                    const p1 = currentSlicePath[j];
-                    const p2 = currentSlicePath[j + 1];
-
+                    const p1 = currentSlicePath[j], p2 = currentSlicePath[j + 1];
                     if (isLineIntersectingCircle(p1, p2, {x: villain.x, y: villain.y}, villain.radius)) {
-                        villain.sliced = true; // 먼저 sliced 플래그 설정
-                        
-                        // 악당 터지는 효과 (파티클)
-                        for (let k = 0; k < 20; k++) { // 파티클 증가
-                            particles.push(new Particle(villain.x, villain.y, villain.originalColor, villain.radius / 20));
-                        }
-                        
-                        // 점수 추가 (콤보 가능성)
-                        slicedThisTurn++;
-                        score += 10 * slicedThisTurn; // 한 번의 슬라이스로 여러 개 베면 콤보 점수
-                        scoreDisplay.textContent = score;
-                        
-                        // 악당을 배열에서 제거 (애니메이션 후 제거하려면 지연 필요)
-                        // 여기서는 즉시 제거하지 않고, 다음 프레임에서 sliced된 악당을 필터링
+                        villain.sliced = true;
+                        for (let k = 0; k < 20; k++) particles.push(new Particle(villain.x, villain.y, villain.originalColor, villain.radius / 20));
+                        slicedThisTurn++; score += 10 * slicedThisTurn; scoreDisplay.textContent = score;
                         break; 
                     }
                 }
             }
-            // 베인 악당들 제거 (gameLoop에서 처리하거나 여기서 명시적으로)
             villains = villains.filter(v => !v.sliced);
         }
         
         function startGame() {
-            score = 0;
-            lives = 3;
-            villains = [];
-            particles = [];
-            sliceParticles = [];
-            sliceTrail = [];
-            currentSlicePath = [];
-            gameOver = false;
-            isSlicing = false;
-            gameSpeed = 1;
-
-            scoreDisplay.textContent = score;
-            livesDisplay.textContent = lives;
-
-            startScreen.classList.remove('show');
-            gameOverScreen.classList.remove('show');
-            
+            score = 0; lives = 3; villains = []; particles = []; sliceParticles = [];
+            sliceTrail = []; currentSlicePath = []; gameOver = false; isSlicing = false; gameSpeed = 1;
+            scoreDisplay.textContent = score; livesDisplay.textContent = lives;
+            startScreen.classList.remove('show'); gameOverScreen.classList.remove('show');
             if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
             window.villainSpawnInterval = setInterval(spawnVillain, Math.max(250, 750 - score * 1.5));
-
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function showGameOverScreen() {
-            finalScoreDisplay.textContent = score;
+            finalScoreDisplay.textContent = score; // 'score' 변수에 최종 점수가 들어있습니다.
             gameOverScreen.classList.add('show');
             if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
+
+            // --- ⭐️ 3. 텔레그램으로 점수 전송 코드 추가 ---
+            try {
+                // WebApp 객체가 초기화되었는지 한번 더 확인 (안전장치)
+                if (WebApp && WebApp.sendData) {
+                    console.log("Attempting to send score to Telegram:", score); // 디버깅용 로그
+                    const scoreDataString = String(score); // 점수를 문자열로 변환
+                    WebApp.sendData(scoreDataString);
+                    // WebApp.close(); // 선택 사항: 데이터 전송 후 웹앱을 닫고 싶다면 주석 해제
+                    console.log("Score sent to Telegram successfully:", scoreDataString); // 디버깅용 로그
+                } else {
+                    console.error("Telegram WebApp API is not available or sendData is not defined.");
+                }
+            } catch (e) {
+                console.error("Error sending data to Telegram:", e);
+                // 여기서 사용자에게 오류를 알릴 수도 있습니다. 예를 들어,
+                // alert("Could not send score to Telegram. Error: " + e.message);
+            }
+            // --- 전송 코드 끝 ---
         }
 
         canvas.addEventListener('mousedown', startSlicing);
@@ -556,25 +455,18 @@
         canvas.addEventListener('touchcancel', endSlicing);
 
         startButton.addEventListener('click', () => {
-            resizeCanvas();
-            startGame();
+            resizeCanvas(); startGame();
         });
         restartButton.addEventListener('click', () => {
-            resizeCanvas();
-            startGame();
+            resizeCanvas(); startGame();
         });
         
         window.addEventListener('resize', () => {
             resizeCanvas();
-            // 게임 중 리사이즈 시 처리 (예: 일시정지 또는 게임오버)
-            if (!gameOver && !startScreen.classList.contains('show')) {
-                // 간단히 게임오버 처리
-                // gameOver = true; 
-            }
+            // if (!gameOver && !startScreen.classList.contains('show')) {}
         });
 
         resizeCanvas();
-        // startScreen.classList.add('show'); // HTML에서 직접 show 클래스 추가
     </script>
 </body>
 </html>
