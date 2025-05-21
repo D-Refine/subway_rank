@@ -1,149 +1,153 @@
-body { /* 기존과 동일 */
-    font-family: 'Press Start 2P', sans-serif; overscroll-behavior: none; touch-action: manipulation;
-    user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
-    margin: 0; padding: 0; background-color: #111827;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    min-height: 100vh; color: white;
+body {
+    font-family: 'Press Start 2P', sans-serif;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+    margin: 0; padding: 0; background-color: #111827; /* 매우 어두운 배경 */
+    display: flex; /* body 자체도 flex로 중앙 정렬 */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* 최소 화면 높이 전체 사용 */
+    color: white;
+    overflow: hidden; /* 스크롤바 방지 */
 }
 
-/* ⭐️ 모든 화면 공통 스타일 및 초기 숨김 처리 */
+/* 모든 화면(.screen)의 공통 스타일 */
 .screen {
     width: 100%;
-    height: 100%;
-    display: none; /* 기본적으로 숨김 */
+    /* height: 100%; */ /* body가 min-height:100vh이므로, 화면 내용에 따라 높이 조절 */
+    max-width: 480px; /* 게임 컨테이너 최대 너비와 일치 또는 유사하게 */
+    display: none; /* 기본적으로 모든 화면 숨김 */
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    position: absolute; /* 다른 화면과 겹치도록 */
-    top: 0;
-    left: 0;
+    /* position: absolute; top: 0; left: 0; */ /* body가 flex 중앙정렬이므로 absolute 불필요 */
+    padding: 20px; /* 화면 내부 여백 */
+    box-sizing: border-box; /* 패딩과 테두리를 너비/높이에 포함 */
 }
 .screen.show {
-    display: flex; /* .show 클래스가 있으면 보이도록 */
+    display: flex; /* .show 클래스가 있는 화면만 보이도록 함 */
 }
 
-/* ⭐️ 메인 홈 화면 스타일 */
+/* 메인 홈 화면 스타일 */
 #mainHomeScreen {
-    background-color: #1a202c; /* 어두운 회색 배경 */
-    padding: 20px;
-    box-sizing: border-box;
+    background-color: transparent; /* body 배경색 사용 */
 }
 #mainHomeScreen h1 {
-    font-size: clamp(2rem, 10vw, 3rem); /* 제목 크기 */
-    color: #68d391; /* 녹색 계열 */
-    text-shadow: 0 0 15px #68d391;
-    margin-bottom: 30px;
+    font-size: clamp(2rem, 10vw, 2.8rem); 
+    color: #68d391; 
+    text-shadow: 0 0 15px #68d391, 0 0 25px #68d391;
+    margin-bottom: 25px;
 }
 .gem-balance {
-    font-size: clamp(1rem, 4vw, 1.5rem);
-    color: #f6e05e; /* 노란색 계열 (젬 색상) */
-    margin-bottom: 40px;
-    padding: 10px 20px;
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    color: #f6e05e; 
+    margin-bottom: 35px;
+    padding: 8px 15px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
 }
 .menu-button {
-    font-family: 'Press Start 2P', sans-serif;
-    padding: 15px 30px;
-    font-size: clamp(1rem, 5vw, 1.3rem);
-    color: white;
-    background-image: linear-gradient(to right, #63b3ed, #4299e1); /* 파란색 계열 */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-family: 'Press Start 2P', sans-serif; padding: 12px 25px;
+    font-size: clamp(0.9rem, 4.5vw, 1.1rem); color: white;
+    background-image: linear-gradient(to right, #63b3ed, #4299e1); 
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    margin-bottom: 20px;
-    width: 80%;
-    max-width: 300px;
+    margin-bottom: 18px; width: 70%; max-width: 280px;
 }
 .menu-button:hover {
     background-image: linear-gradient(to right, #4299e1, #3182ce);
-    box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
-    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4); transform: translateY(-2px);
 }
-.menu-button:active {
-    transform: translateY(0px);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
+.menu-button:active { transform: translateY(0px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-
-#gameContainer { /* 기존 스타일에서 screen 클래스에 공통화된 부분 반영 */
-    max-width: 480px; /* 메인 홈 화면과 너비 일치시키거나 다르게 설정 가능 */
+/* 게임 컨테이너 스타일 */
+#gameContainer {
+    /* max-width는 .screen 에서 이미 상속 */
     aspect-ratio: 9 / 16; 
-    background-color: #1f2937; border-radius: 12px;
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.3); overflow: hidden;
-    /* position, display 등은 .screen 클래스에서 관리 */
+    position: relative; /* ui-overlay의 기준점 */
+    background-color: #1f2937; /* gray-800 */
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.3); 
+    overflow: hidden;
+    padding: 0; /* 게임 컨테이너는 내부 패딩 제거 */
 }
-canvas { /* 기존과 동일 */
+canvas {
     display: block; width: 100%; height: 100%;
     background-image: url('https://placehold.co/480x853/2c3e50/FFFFFF?text=Futuristic%20Subway%20Vibe');
-    background-size: cover; background-position: center; border-radius: 12px;
+    background-size: cover; background-position: center; border-radius: 12px; /* 내부 컨텐츠이므로 radius 유지 */
 }
-.ui-overlay { /* 기존과 동일 */
+.ui-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     display: flex; flex-direction: column; justify-content: space-between;
     padding: 15px; pointer-events: none; box-sizing: border-box;
 }
-.top-ui { /* 기존과 동일 */
+.top-ui {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: clamp(0.8rem, 3.5vw, 1.2rem);
+    font-size: clamp(0.8rem, 3.5vw, 1.1rem); /* 약간 작게 조정 */
+    width: 100%;
 }
-.score, .lives, .combo { /* 기존과 동일 */
-    background-color: rgba(0,0,0,0.6); padding: 8px 12px;
+.score, .lives, .combo {
+    background-color: rgba(0,0,0,0.6); padding: 7px 10px; /* 약간 작게 조정 */
     border-radius: 8px; text-shadow: 0 0 5px #000;
 }
-.combo { color: #facc15; } /* 기존과 동일 */
+.combo { color: #facc15; flex-grow: 1; text-align: center; margin: 0 10px;} /* 콤보가 중앙 공간 차지 */
+.score { min-width: 80px; text-align: left;} /* 최소 너비 */
+.lives { min-width: 80px; text-align: right;} /* 최소 너비 */
 
-#gameOverScreen, #startScreen { /* 기존 스타일에서 screen 클래스에 공통화된 부분 반영 */
-    background-color: rgba(0, 0, 0, 0.9); color: white;
-    z-index: 10; pointer-events: auto;
-    padding: 20px; box-sizing: border-box;
-    opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
-    /* width, height, display 등은 .screen 클래스에서 관리 */
+
+/* 기존 시작 화면 (startScreen) 및 게임 오버 화면 (gameOverScreen) 공통 스타일 */
+#startScreen, #gameOverScreen {
+    /* width, height, display 등은 .screen 클래스에서 상속 */
+    background-color: rgba(0, 0, 0, 0.9); /* 반투명 검은 배경 */
+    color: white;
+    z-index: 10; /* 다른 화면 위에 오도록 */
+    pointer-events: auto; /* 클릭 가능하도록 */
+    opacity: 0; visibility: hidden; /* 기본 숨김, .show로 제어 */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    /* padding은 .screen 에서 이미 상속 */
 }
-#gameOverScreen.show, #startScreen.show { opacity: 1; visibility: visible; }
-#gameOverScreen h2, #startScreen h2 { /* 기존과 동일 */
+/* .show 클래스는 공통으로 사용 */
+
+#gameOverScreen h2, #startScreen h2 {
     font-size: clamp(1.8rem, 8vw, 2.5rem); margin-bottom: 15px;
     color: #ef4444; text-shadow: 0 0 10px #ef4444;
 }
 #startScreen h2 { color: #4ade80; text-shadow: 0 0 10px #4ade80; }
-#gameOverScreen p, #startScreen p { /* 기존과 동일 */
+#gameOverScreen p, #startScreen p {
     font-size: clamp(0.9rem, 4vw, 1.2rem); margin-bottom: 25px; line-height: 1.6;
 }
 
-/* ⭐️ 퀘스트 완료 메시지 스타일 */
 #questCompletionMessages {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    font-size: clamp(0.8rem, 3.5vw, 1.1rem);
-    color: #f6e05e; /* 젬 색상 */
+    margin-top: 15px; margin-bottom: 15px;
+    font-size: clamp(0.8rem, 3.5vw, 1.0rem); /* 약간 작게 */
+    color: #f6e05e; 
 }
-#questCompletionMessages p {
-    margin-bottom: 5px;
-}
+#questCompletionMessages p { margin-bottom: 5px; }
 
-.restart-button, .start-button, .home-button { /* 기존과 거의 동일, home-button도 포함 */
-    font-family: 'Press Start 2P', sans-serif; padding: 15px 30px;
-    font-size: clamp(1rem, 4.5vw, 1.2rem); color: white;
+/* 버튼 공통 스타일 (재정의) */
+.restart-button, .start-button, .home-button {
+    font-family: 'Press Start 2P', sans-serif; padding: 12px 25px;
+    font-size: clamp(0.9rem, 4vw, 1.1rem); color: white;
     background-image: linear-gradient(to right, #4ade80, #3b82f6);
     border: none; border-radius: 8px; cursor: pointer;
     transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    margin-top: 10px; /* 버튼 간 기본 간격 */
 }
-.home-button { /* 홈 버튼은 다른 메뉴 버튼과 색상 통일 가능 */
-    background-image: linear-gradient(to right, #a0aec0, #718096); /* 회색 계열 */
+.home-button { 
+    background-image: linear-gradient(to right, #a0aec0, #718096); 
 }
-.home-button:hover {
-    background-image: linear-gradient(to right, #718096, #a0aec0);
-}
-
-.restart-button:hover, .start-button:hover { /* 기존과 동일 */
-    background-image: linear-gradient(to right, #3b82f6, #4ade80);
+.restart-button:hover, .start-button:hover, .home-button:hover {
     box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4); transform: translateY(-2px);
 }
-.restart-button:active, .start-button:active, .home-button:active { /* 기존과 동일 */
+.home-button:hover { /* 홈 버튼 호버는 다른 색상 그라데이션 가능 */
+    background-image: linear-gradient(to right, #718096, #a0aec0);
+}
+.restart-button:active, .start-button:active, .home-button:active {
     transform: translateY(0px); box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
