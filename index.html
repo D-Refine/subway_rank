@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Ranking Slasher (Quests & Gems Update)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Ranking Slasher (Full+Debug)</title>
+    <script src="https://cdn.tailwindcss.com"></script> <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="mainHomeScreen" class="screen show">
-        <h1>Ranking Slasher</h1>
+    <div id="mainHomeScreen" class="screen show"> <h1>Ranking Slasher</h1>
         <div id="gemBalanceDisplay" class="gem-balance">💎 Gems: <span>0</span></div>
         <button class="menu-button" id="playGameButton">Play Game</button>
         <button class="menu-button" id="questsButton">Quests (Soon)</button>
         <button class="menu-button" id="shopButton">Shop (Soon)</button>
+        <p style="font-size: 0.7rem; margin-top: 20px; color: #718096;">Version: Full+Debug</p>
     </div>
 
-    <div id="startScreen" class="screen"> <h2>Ranking Slasher</h2>
+    <div id="startScreen" class="screen"> 
+        <h2>Ranking Slasher</h2>
         <p>Slash the flying coin villains to defeat them!<br>Miss 3 and it's Game Over!</p>
-        <button class="start-button" id="startButton">Start Game</button>
+        <button class="start-button" id="startButton">Start Game (Old)</button>
     </div>
 
-    <div id="gameContainer" class="screen"> <canvas id="gameCanvas"></canvas>
+    <div id="gameContainer" class="screen">
+        <canvas id="gameCanvas"></canvas>
         <div class="ui-overlay">
             <div class="top-ui">
                 <div class="score">Score: <span id="scoreDisplay">0</span></div>
@@ -31,12 +32,16 @@
                 <div class="lives">Lives: <span id="livesDisplay">3</span></div>
             </div>
         </div>
-         <div id="gameOverScreen" class="screen"> <h2>Game Over!</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <div id="questCompletionMessages"></div>
-            <button class="restart-button" id="restartButton">Restart</button>
-            <button class="home-button" id="mainHomeButton">Home</button> </div>
     </div>
+
+    <div id="gameOverScreen" class="screen">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <div id="questCompletionMessages"></div>
+        <button class="restart-button" id="restartButton">Restart</button>
+        <button class="home-button" id="mainHomeButton" style="margin-top: 15px;">Home</button>
+    </div>
+
     <script src="game.js"></script>
 </body>
 </html>
