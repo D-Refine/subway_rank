@@ -1,230 +1,147 @@
-/* style.css - 전체 코드 (Top UI 디버깅 스타일 포함) */
+/* style.css - 전체 코드 */
 html {
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* 전체 페이지 스크롤 방지 */
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box; /* 모든 요소에 box-sizing 적용 */
+    width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; box-sizing: border-box;
 }
-*, *:before, *:after {
-    box-sizing: inherit;
-}
+*, *:before, *:after { box-sizing: inherit; }
 
 body {
-    font-family: 'Press Start 2P', sans-serif;
-    overscroll-behavior: none; /* 스크롤 당김 효과 방지 */
-    touch-action: manipulation; /* 더블탭 확대 등 기본 터치 액션 방지 */
-    user-select: none;
-    -webkit-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none;
-    background-color: #111827; 
-    display: flex; 
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%; 
-    height: 100%; 
-    color: white;
-    overflow: hidden; /* body 내부 스크롤 방지 */
-    margin: 0; 
-    padding: 0; 
-    position: relative; /* .screen 요소들의 position:absolute 기준점 */
+    font-family: 'Press Start 2P', sans-serif; overscroll-behavior: none; touch-action: manipulation;
+    user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+    background-color: #111827; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 100%; height: 100%; color: white; overflow: hidden; margin: 0; padding: 0; position: relative;
 }
 
 .screen {
-    width: 100%;
-    max-width: 480px; 
-    display: none; /* 기본적으로 모든 .screen 요소는 숨김 */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    
-    position: absolute; 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); 
-    
-    padding: 20px; 
-    box-sizing: border-box; 
-    opacity: 0; 
-    visibility: hidden; 
+    width: 100%; max-width: 480px; display: none; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    padding: 20px; box-sizing: border-box; opacity: 0; visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; 
+    /* ⭐️ 화면 높이 전체를 사용하도록 수정 (퀘스트 화면 스크롤 고려) */
+    height: 100%; 
 }
-
 .screen.show {
-    display: flex !important; 
-    opacity: 1 !important;
-    visibility: visible !important;
-    transition: opacity 0.3s ease-in-out, visibility 0s linear 0s; 
+    display: flex !important; opacity: 1 !important; visibility: visible !important;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0s;
 }
 
-/* 메인 홈 화면 스타일 */
-#mainHomeScreen {
-    background-color: transparent;
-    z-index: 20; 
-}
-#mainHomeScreen h1 {
-    font-size: clamp(2rem, 10vw, 2.8rem); 
-    color: #68d391; 
-    text-shadow: 0 0 15px #68d391, 0 0 25px #68d391;
-    margin-bottom: 25px;
-}
-.gem-balance {
-    font-size: clamp(1rem, 4vw, 1.3rem);
-    color: #f6e05e; 
-    margin-bottom: 35px;
-    padding: 8px 15px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-}
-.menu-button {
-    font-family: 'Press Start 2P', sans-serif; padding: 12px 25px;
-    font-size: clamp(0.9rem, 4.5vw, 1.1rem); color: white;
-    background-image: linear-gradient(to right, #63b3ed, #4299e1); 
-    border: none; border-radius: 8px; cursor: pointer;
-    transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    margin-bottom: 18px; width: 70%; max-width: 280px;
-}
-.menu-button:hover {
-    background-image: linear-gradient(to right, #4299e1, #3182ce);
-    box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4); transform: translateY(-2px);
-}
+/* 메인 홈 화면 스타일 (기존과 동일) */
+#mainHomeScreen { background-color: transparent; z-index: 20; }
+#mainHomeScreen h1 { font-size: clamp(2rem, 10vw, 2.8rem); color: #68d391; text-shadow: 0 0 15px #68d391, 0 0 25px #68d391; margin-bottom: 25px; }
+.gem-balance { font-size: clamp(1rem, 4vw, 1.3rem); color: #f6e05e; margin-bottom: 35px; padding: 8px 15px; background-color: rgba(255, 255, 255, 0.1); border-radius: 8px; }
+.menu-button { font-family: 'Press Start 2P', sans-serif; padding: 12px 25px; font-size: clamp(0.9rem, 4.5vw, 1.1rem); color: white; background-image: linear-gradient(to right, #63b3ed, #4299e1); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); margin-bottom: 18px; width: 70%; max-width: 280px; }
+.menu-button:hover { background-image: linear-gradient(to right, #4299e1, #3182ce); box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4); transform: translateY(-2px); }
 .menu-button:active { transform: translateY(0px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 .version-text { font-size: 0.7rem; margin-top: 20px; color: #4a5568; }
 
+/* 게임 컨테이너 스타일 (기존과 동일) */
+#gameContainer { aspect-ratio: 9 / 16; background-color: #1f2937; border-radius: 12px; box-shadow: 0 0 30px rgba(74, 222, 128, 0.3); overflow: hidden; padding: 0; z-index: 5; }
+canvas { display: block; width: 100%; height: 100%; background-image: url('https://placehold.co/480x853/1f2937/34d399?text=Ranking+Slasher'); background-size: cover; background-position: center; border-radius: 12px; }
+.ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; pointer-events: none; box-sizing: border-box; border: 2px dashed hotpink; }
+.top-ui { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; width: 100%; gap: 5px; border: 3px solid blue !important; background-color: rgba(0, 0, 255, 0.3) !important; padding: 5px !important; min-height: 50px !important; z-index: 100 !important; color: white !important; overflow: visible !important; }
+.score, .lives, .combo { padding: 2px !important; border: 2px dashed lime !important; color: white !important; display: inline-block !important; margin: 2px 5px !important; min-width: 60px !important; min-height: 25px !important; vertical-align: top; overflow: visible !important; white-space: normal !important; }
+.combo { text-align: center; } .score { text-align: left; } .lives { text-align: right; }
 
-/* 게임 컨테이너 스타일 */
-#gameContainer {
-    aspect-ratio: 9 / 16; 
-    background-color: #1f2937; 
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.3); 
-    overflow: hidden;
-    padding: 0; 
-    z-index: 5; 
-}
-canvas {
-    display: block; width: 100%; height: 100%; 
-    background-image: url('https://placehold.co/480x853/1f2937/34d399?text=Ranking+Slasher');
-    background-size: cover; background-position: center; border-radius: 12px; 
-}
-.ui-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; flex-direction: column; justify-content: space-between;
-    padding: 10px; 
-    pointer-events: none; 
-    box-sizing: border-box;
-}
-
-/* ⭐️ Top UI 스타일 (디버깅용 수정 포함) ⭐️ */
-.top-ui {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem; /* ⭐️ 테스트를 위해 clamp 대신 고정값 또는 더 큰 최소값 사용 */
-    width: 100%;
-    gap: 5px; 
-    border: 1px dashed red; /* ⭐️ .top-ui 영역 확인을 위한 임시 테두리 */
-    min-height: 30px; /* ⭐️ .top-ui 최소 높이 확보 */
-}
-
-.score, .lives, .combo {
-    background-color: rgba(0,0,0,0.7); 
-    padding: 5px 7px; 
-    border-radius: 5px; 
-    text-shadow: 0 0 3px #000;
-    
-    /* overflow: hidden; */      /* ⭐️ 임시 주석 처리 */
-    /* text-overflow: ellipsis; */ /* ⭐️ 임시 주석 처리 */
-    /* white-space: nowrap; */   /* ⭐️ 임시 주석 처리 (내용이 길면 여러 줄로 보이게 됨) */
-    
-    min-height: 20px; /* ⭐️ 각 요소 최소 높이 확보 */
-    border: 1px dashed lime; /* ⭐️ 각 요소 영역 확인을 위한 임시 테두리 */
-    color: white !important; /* ⭐️ 글자색 흰색으로 강제 (테스트용, !important는 디버깅용) */
-}
-
-.combo {
-    /* color: #facc15; */ /* 임시로 흰색 사용 */
-    flex-grow: 1; 
-    flex-shrink: 1; 
-    text-align: center;
-    margin: 0; 
-    min-width: 40px; /* ⭐️ 최소 너비를 약간 주어 테스트 (0 대신) */
-}
-
-.score {
-    min-width: 40px; /* ⭐️ 최소 너비를 약간 주어 테스트 */
-    text-align: left;
-    flex-shrink: 0; 
-}
-
-.lives {
-    min-width: 40px; /* ⭐️ 최소 너비를 약간 주어 테스트 */
-    text-align: right;
-    flex-shrink: 0; 
-}
-/* ⭐️ Top UI 디버깅 스타일 끝 ⭐️ */
-
-
-/* 기존 시작 화면 (startScreen) */
-#startScreen {
-    background-color: rgba(0, 0, 0, 0.9); 
-    color: white;
-    z-index: 10; 
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-#startScreen h2 {
-    font-size: clamp(1.8rem, 8vw, 2.5rem); margin-bottom: 15px;
-    color: #4ade80; text-shadow: 0 0 10px #4ade80;
-}
-
-/* 게임 오버 화면 (gameOverScreen) */
-#gameOverScreen {
-    background-color: rgba(0, 0, 0, 0.9); 
-    color: white;
-    z-index: 15; 
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-#gameOverScreen h2 {
-    font-size: clamp(1.8rem, 8vw, 2.5rem); margin-bottom: 15px;
-    color: #ef4444; text-shadow: 0 0 10px #ef4444;
-}
-#gameOverScreen p, #startScreen p {
-    font-size: clamp(0.9rem, 4vw, 1.2rem); margin-bottom: 25px; line-height: 1.6;
-}
-
-#questCompletionMessages {
-    margin-top: 15px; margin-bottom: 15px;
-    font-size: clamp(0.8rem, 3.5vw, 1.0rem); 
-    color: #f6e05e; 
-}
+/* 기존 시작 화면 (startScreen) 및 게임 오버 화면 (gameOverScreen) (기존과 동일) */
+#startScreen, #gameOverScreen { background-color: rgba(0, 0, 0, 0.9); color: white; transition: opacity 0.3s ease, visibility 0.3s ease; }
+#startScreen { z-index: 10; } #gameOverScreen { z-index: 15; }
+#gameOverScreen h2, #startScreen h2 { font-size: clamp(1.8rem, 8vw, 2.5rem); margin-bottom: 15px; color: #ef4444; text-shadow: 0 0 10px #ef4444; }
+#startScreen h2 { color: #4ade80; text-shadow: 0 0 10px #4ade80; }
+#gameOverScreen p, #startScreen p { font-size: clamp(0.9rem, 4vw, 1.2rem); margin-bottom: 25px; line-height: 1.6; }
+#questCompletionMessages { margin-top: 15px; margin-bottom: 15px; font-size: clamp(0.8rem, 3.5vw, 1.0rem); color: #f6e05e; }
 #questCompletionMessages p { margin-bottom: 5px; }
+.restart-button, .start-button, .home-button { font-family: 'Press Start 2P', sans-serif; padding: 12px 25px; font-size: clamp(0.9rem, 4vw, 1.1rem); color: white; background-image: linear-gradient(to right, #4ade80, #3b82f6); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); margin-top: 10px; }
+.home-button { background-image: linear-gradient(to right, #a0aec0, #718096); }
+.restart-button:hover, .start-button:hover { background-image: linear-gradient(to right, #3b82f6, #4ade80); box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4); transform: translateY(-2px); }
+.home-button:hover { background-image: linear-gradient(to right, #718096, #a0aec0); box-shadow: 0 6px 20px rgba(113, 128, 150, 0.4); transform: translateY(-2px); }
+.restart-button:active, .start-button:active, .home-button:active { transform: translateY(0px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-/* 버튼 공통 스타일 */
-.restart-button, .start-button, .home-button {
-    font-family: 'Press Start 2P', sans-serif; padding: 12px 25px;
-    font-size: clamp(0.9rem, 4vw, 1.1rem); color: white;
-    background-image: linear-gradient(to right, #4ade80, #3b82f6);
-    border: none; border-radius: 8px; cursor: pointer;
-    transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    margin-top: 10px; 
+/* ⭐️ 퀘스트 화면 스타일 추가 */
+#questsScreen {
+    background-color: #1A202C; /* 아주 어두운 회색 (gray-900 정도) */
+    z-index: 25; /* 다른 화면들보다 위에 오도록 */
+    justify-content: flex-start; /* 내용을 위에서부터 정렬 */
+    padding-top: 70px; /* 타이틀과 목록 간의 상단 여백 확보 */
+    position: relative; /* 자식 요소의 absolute 위치 기준 */
 }
-.home-button { 
-    background-image: linear-gradient(to right, #a0aec0, #718096); 
+
+#questsScreen h2 {
+    font-size: clamp(1.5rem, 7vw, 2.0rem); /* 타이틀 크기 약간 줄임 */
+    color: #9F7AEA; /* 보라색 계열 */
+    text-shadow: 0 0 10px #9F7AEA;
+    margin-bottom: 0; /* 아래쪽 컨테이너와 간격은 컨테이너의 padding으로 조절 */
+    position: absolute;
+    top: 20px; /* 화면 상단에서 약간의 여백 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%; /* 가운데 정렬 유지 */
 }
-.restart-button:hover, .start-button:hover {
-    background-image: linear-gradient(to right, #3b82f6, #4ade80);
-    box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4); transform: translateY(-2px);
+
+#questsListContainer {
+    width: 100%;
+    max-width: 420px; /* 퀘스트 목록 최대 너비 */
+    overflow-y: auto; /* 퀘스트가 많으면 스크롤 */
+    padding: 15px;
+    flex-grow: 1; /* 남은 세로 공간을 모두 차지 (버튼이 맨 아래 오도록) */
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* 퀘스트 아이템 간 간격 */
+    margin-bottom: 10px; /* 하단 버튼과의 간격 */
 }
-.home-button:hover { 
-    background-image: linear-gradient(to right, #718096, #a0aec0);
-    box-shadow: 0 6px 20px rgba(113, 128, 150, 0.4); transform: translateY(-2px);
+
+.quest-item {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 12px 15px;
+    text-align: left;
 }
-.restart-button:active, .start-button:active, .home-button:active {
-    transform: translateY(0px); box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+
+.quest-item.completed {
+    background-color: rgba(74, 222, 128, 0.15); /* 완료 시 녹색 틴트 */
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.quest-item h3 { /* Quest Name */
+    font-size: clamp(0.85rem, 3.8vw, 1.0rem);
+    color: #F6E05E; /* 젬 색상과 유사하게 */
+    margin-bottom: 4px;
+}
+
+.quest-item p { /* Quest Description */
+    font-size: clamp(0.7rem, 3.2vw, 0.85rem);
+    color: #CBD5E0; /* 밝은 회색 (gray-400) */
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.quest-item .reward { /* Quest Reward */
+    font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+    color: #68D391; /* 밝은 녹색 */
+}
+
+.quest-item .status { /* Quest Status */
+    font-size: clamp(0.7rem, 3vw, 0.8rem);
+    font-style: italic;
+    margin-top: 6px;
+    text-align: right;
+}
+
+.quest-item.completed .status {
+    color: #4ADE80; /* 완료 시 녹색 */
+}
+
+.quest-item:not(.completed) .status {
+    color: #A0AEC0; /* 진행 중 회색 (gray-500) */
+}
+
+/* 퀘스트 화면의 "Back to Home" 버튼은 .menu-button 스타일을 공유 */
+#backToHomeFromQuestsButton {
+    width: 60%; /* 너비 조정 */
+    max-width: 240px;
+    padding: 10px 20px; /* 패딩 조정 */
+    font-size: clamp(0.8rem, 4vw, 1rem); /* 폰트 크기 조정 */
+    margin-top: auto; /* ⭐️ 중요: 스크롤 목록 아래에 고정되도록 함 */
+    margin-bottom: 5px; /* 하단 여백 */
+    flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
 }
