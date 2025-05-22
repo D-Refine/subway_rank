@@ -75,24 +75,31 @@ const quests = {
 };
 let currentGameStats = {};
 
-// --- Canvas 크기 조절 함수 ---
+// --- Canvas 크기 조절 함수 (디버깅 로그 추가됨) ---
 function resizeCanvas() {
     if (!gameContainer || !canvas) {
         console.error("Error: gameContainer or canvas element not found for resizeCanvas.");
         return;
     }
     const containerRect = gameContainer.getBoundingClientRect();
+    // ⭐️ 로그 추가: 언제 호출되고, gameContainer의 크기는 얼마인지 확인
+    console.log(
+        "resizeCanvas called. Container rect (W, H, T, L):", 
+        containerRect.width, containerRect.height, containerRect.top, containerRect.left,
+        "Window (inH, inW):", window.innerHeight, window.innerWidth
+    );
+    
     if (containerRect.width > 0 && containerRect.height > 0) {
         canvas.width = containerRect.width;
         canvas.height = containerRect.height;
         console.log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
     } else {
-        console.warn("resizeCanvas called while gameContainer might be hidden or has no dimensions. Canvas might not be sized correctly until game starts or gameContainer is visible.");
+        console.warn("resizeCanvas called while gameContainer might be hidden or has no dimensions. Canvas not resized this time.");
     }
 }
 
 // --- 데이터 저장/로드 함수 ---
-function saveData() {
+function saveData() { /* ... (이전과 동일) ... */ 
     try {
         localStorage.setItem('rankingSlasher_gems', playerGems.toString());
         const completedQuestsStatus = {};
@@ -107,13 +114,12 @@ function saveData() {
         console.error("Error saving data to localStorage:", e);
     }
 }
-
-function loadData() {
+function loadData() { /* ... (이전과 동일) ... */
     try {
         const savedGems = localStorage.getItem('rankingSlasher_gems');
         if (savedGems !== null) {
             playerGems = parseInt(savedGems, 10);
-            if (isNaN(playerGems)) playerGems = 0;
+            if (isNaN(playerGems)) playerGems = 0; 
         } else {
             playerGems = 0; 
         }
@@ -135,18 +141,17 @@ function loadData() {
     }
     updateGemDisplay();
     console.log("Data loaded:", {gems: playerGems, quests});
-}
+ }
 
 // --- UI 업데이트 함수 ---
-function updateGemDisplay() {
+function updateGemDisplay() { /* ... (이전과 동일) ... */ 
     if (gemBalanceDisplaySpan) {
         gemBalanceDisplaySpan.textContent = playerGems;
     } else {
         console.warn("gemBalanceDisplaySpan not found.");
     }
 }
-
-function showScreen(screenToShow) {
+function showScreen(screenToShow) { /* ... (이전과 동일, 디버깅 로그 포함) ... */
     console.log("showScreen called for:", screenToShow ? screenToShow.id : "a null screen");
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('show');
@@ -161,14 +166,13 @@ function showScreen(screenToShow) {
 }
 
 // --- 게임 통계 및 퀘스트 로직 함수 ---
-function resetCurrentGameStats() {
+function resetCurrentGameStats() { /* ... (이전과 동일) ... */
     currentGameStats = {
         score: 0, specialPositiveCoinsSlashed: 0, maxCoinsInSingleSwipe: 0,
         livesLost: 0, bombsSlashed: 0
     };
 }
-
-function checkAndAwardQuests() {
+function checkAndAwardQuests() { /* ... (이전과 동일, 디버깅 로그 포함) ... */
     console.log("Checking quests. Current game stats:", currentGameStats); 
     let questMessagesHtml = ""; let newGemsEarned = 0;
     currentGameStats.score = score; 
@@ -192,8 +196,8 @@ function checkAndAwardQuests() {
     else { console.log("No new quests completed in this session."); }
 }
 
-// --- 게임 요소 클래스 정의 (Villain, Particle, SliceParticle) ---
-class Villain { /* ... (이전 답변의 Villain 클래스 코드 전체) ... */ 
+// --- 게임 요소 클래스 정의 ---
+class Villain { /* ... (이전과 동일) ... */ 
     constructor(x, y, radius, color, velocity, isGoldRush = false, isLifeBonus = false, isBomb = false, isIce = false) {
         this.x = x; this.y = y; this.radius = radius; this.originalColor = color; 
         this.velocity = velocity; this.sliced = false; this.gravity = 0.05 * (canvas.height > 0 ? canvas.height / 800 : 0.05); 
@@ -228,8 +232,7 @@ class Villain { /* ... (이전 답변의 Villain 클래스 코드 전체) ... */
     }
     update() { this.x += this.velocity.x * gameSpeed; this.y += this.velocity.y * gameSpeed; this.velocity.y += this.gravity * gameSpeed; this.rotation += this.rotationSpeed * gameSpeed; if (!this.sliced) this.draw(); }
 }
-
-function spawnVillain(forceNormal = false) { /* ... (이전 답변과 동일, canvas.width/height 0 체크 추가) ... */
+function spawnVillain(forceNormal = false) { /* ... (이전과 동일) ... */
     if (gameOver && !isGoldRushActive) return; if (isGoldRushActive && Date.now() > goldRushEndTime) { isGoldRushActive = false; console.log("Gold Rush ended during spawn attempt."); return; }
     if(!canvas || canvas.width === 0 || canvas.height === 0) { console.warn("Canvas not ready for spawning villains."); return; }
     const radius = Math.random() * (canvas.width * 0.04) + (canvas.width * 0.055); const side = Math.floor(Math.random() * 3); let x, y; let velocityX, velocityY; const speedMultiplier = canvas.height / 800;
@@ -246,17 +249,18 @@ function spawnVillain(forceNormal = false) { /* ... (이전 답변과 동일, ca
     if (isThisAGoldRushCoin) villainColor = goldRushCoinColor; else if (isThisAnExtraLifeCoin) villainColor = lifeBonusCoinColor; else if (isThisABombCoin) villainColor = bombCoinColor; else if (isThisAnIceCoin) villainColor = iceCoinColor; else villainColor = `hsl(${Math.random() * 60 + 25}, 100%, 60%)`; 
     villains.push(new Villain(x, y, radius, villainColor, { x: velocityX, y: velocityY }, isThisAGoldRushCoin, isThisAnExtraLifeCoin, isThisABombCoin, isThisAnIceCoin));
 }
+class Particle { /* ... (이전과 동일) ... */ constructor(x, y, color, sizeMultiplier = 1) { this.x = x; this.y = y; this.size = (Math.random() * 3 + 2) * sizeMultiplier; this.color = color; this.velocity = { x: (Math.random() - 0.5) * (Math.random() * 8), y: (Math.random() - 0.5) * (Math.random() * 8) }; this.alpha = 1; this.friction = 0.97; this.gravity = 0.1;} draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.velocity.x *= this.friction; this.velocity.y *= this.friction; this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.03; if (this.alpha > 0) this.draw(); }}
+class SliceParticle { /* ... (이전과 동일) ... */ constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`; this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 }; this.alpha = 1; } draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.05; if (this.alpha > 0) this.draw(); }}
+function updateAndDrawParticles(particleArray) { /* ... (이전과 동일) ... */ for (let i = particleArray.length - 1; i >= 0; i--) { particleArray[i].update(); if (particleArray[i].alpha <= 0) particleArray.splice(i, 1); }}
+function drawSliceTrail() { /* ... (이전과 동일) ... */ if (sliceTrail.length < 2) return; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; for (let i = 1; i < sliceTrail.length; i++) { const p1 = sliceTrail[i-1], p2 = sliceTrail[i]; const age = (i / sliceTrail.length), alpha = Math.max(0, (1 - age) * 0.8); const lineWidth = Math.max(1, (1 - age) * (canvas.width * 0.03)); if (alpha <= 0 || lineWidth <= 0) continue; ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); const trailGradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y); trailGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`); trailGradient.addColorStop(0.5, `rgba(139, 227, 255, ${alpha * 0.6})`); trailGradient.addColorStop(1, `rgba(74, 222, 128, ${alpha * 0.4})`); ctx.strokeStyle = trailGradient; ctx.lineWidth = lineWidth; ctx.shadowColor = `rgba(139, 227, 255, ${alpha * 0.7})`; ctx.shadowBlur = lineWidth * 1.5; ctx.stroke(); } ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; if (sliceTrail.length > 0) { sliceTrail.forEach(p => p.alpha = (p.alpha || 1) - SLICE_TRAIL_FADE_SPEED); sliceTrail = sliceTrail.filter(p => p.alpha > 0); }}
+function updateComboDisplay() { /* ... (이전과 동일) ... */ if(comboCountDisplay && comboMultiplierDisplay) { comboCountDisplay.textContent = currentComboCount; comboMultiplierDisplay.textContent = currentScoreMultiplier.toFixed(1); }}
+function resetCombo() { /* ... (이전과 동일) ... */ if (currentComboCount > 0) { console.log(`Combo reset from ${currentComboCount}. Multiplier was x${currentScoreMultiplier.toFixed(1)}`); } currentComboCount = 0; currentScoreMultiplier = 1.0; if (comboResetTimer) { clearTimeout(comboResetTimer); comboResetTimer = null; } updateComboDisplay(); }
 
-class Particle { /* ... (이전 답변과 동일) ... */ constructor(x, y, color, sizeMultiplier = 1) { this.x = x; this.y = y; this.size = (Math.random() * 3 + 2) * sizeMultiplier; this.color = color; this.velocity = { x: (Math.random() - 0.5) * (Math.random() * 8), y: (Math.random() - 0.5) * (Math.random() * 8) }; this.alpha = 1; this.friction = 0.97; this.gravity = 0.1;} draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.velocity.x *= this.friction; this.velocity.y *= this.friction; this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.03; if (this.alpha > 0) this.draw(); }}
-class SliceParticle { /* ... (이전 답변과 동일) ... */ constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`; this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 }; this.alpha = 1; } draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); } update() { this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.05; if (this.alpha > 0) this.draw(); }}
-function updateAndDrawParticles(particleArray) { /* ... (이전 답변과 동일) ... */ for (let i = particleArray.length - 1; i >= 0; i--) { particleArray[i].update(); if (particleArray[i].alpha <= 0) particleArray.splice(i, 1); }}
-function drawSliceTrail() { /* ... (이전 답변과 동일) ... */ if (sliceTrail.length < 2) return; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; for (let i = 1; i < sliceTrail.length; i++) { const p1 = sliceTrail[i-1], p2 = sliceTrail[i]; const age = (i / sliceTrail.length), alpha = Math.max(0, (1 - age) * 0.8); const lineWidth = Math.max(1, (1 - age) * (canvas.width * 0.03)); if (alpha <= 0 || lineWidth <= 0) continue; ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); const trailGradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y); trailGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`); trailGradient.addColorStop(0.5, `rgba(139, 227, 255, ${alpha * 0.6})`); trailGradient.addColorStop(1, `rgba(74, 222, 128, ${alpha * 0.4})`); ctx.strokeStyle = trailGradient; ctx.lineWidth = lineWidth; ctx.shadowColor = `rgba(139, 227, 255, ${alpha * 0.7})`; ctx.shadowBlur = lineWidth * 1.5; ctx.stroke(); } ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; if (sliceTrail.length > 0) { sliceTrail.forEach(p => p.alpha = (p.alpha || 1) - SLICE_TRAIL_FADE_SPEED); sliceTrail = sliceTrail.filter(p => p.alpha > 0); }}
-function updateComboDisplay() { /* ... (이전 답변과 동일) ... */ if(comboCountDisplay && comboMultiplierDisplay) { comboCountDisplay.textContent = currentComboCount; comboMultiplierDisplay.textContent = currentScoreMultiplier.toFixed(1); }}
-function resetCombo() { /* ... (이전 답변과 동일) ... */ if (currentComboCount > 0) { console.log(`Combo reset from ${currentComboCount}. Multiplier was x${currentScoreMultiplier.toFixed(1)}`); } currentComboCount = 0; currentScoreMultiplier = 1.0; if (comboResetTimer) { clearTimeout(comboResetTimer); comboResetTimer = null; } updateComboDisplay(); }
-
-// --- 게임 루프 및 핵심 로직 (디버깅 로그 추가됨) ---
+// --- 게임 루프 및 핵심 로직 (디버깅 로그 추가) ---
 function gameLoop() { 
-    console.log("gameLoop running, frame:", frameCount, "gameOver:", gameOver, "isFrozen:", isFrozen); 
+    // ⭐️ 캔버스 크기 및 상태 로깅
+    console.log("gameLoop running, frame:", frameCount, "gameOver:", gameOver, "isFrozen:", isFrozen, "Canvas W:", canvas.width, "H:", canvas.height); 
+    
     if (gameOver) {
         console.log("gameLoop: gameOver is true. Calling cancelAnimationFrame and showGameOverScreen."); 
         cancelAnimationFrame(animationFrameId); 
@@ -266,12 +270,17 @@ function gameLoop() {
     }
     if (!canvas || canvas.width === 0 || canvas.height === 0) { 
         console.warn("gameLoop: Canvas not ready or zero size. Requesting next frame.");
-        animationFrameId = requestAnimationFrame(gameLoop); // 루프는 계속 시도
+        animationFrameId = requestAnimationFrame(gameLoop);
         return;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     frameCount++;
+
+    // ⭐️ 테스트용: 캔버스 테두리 그리기 (문제가 해결되면 주석 처리)
+    // ctx.strokeStyle = 'lime'; 
+    // ctx.lineWidth = 3;       
+    // ctx.strokeRect(0, 0, canvas.width, canvas.height); 
 
     if (isFrozen && Date.now() > frozenEndTime) { isFrozen = false; console.log("Unfrozen!"); }
     if (isGoldRushActive) {
@@ -292,26 +301,21 @@ function gameLoop() {
         }
     });
     updateAndDrawParticles(particles); updateAndDrawParticles(sliceParticles); drawSliceTrail();
-    
-    // 테스트용 사각형 그리기 (이전 답변에서 제안)
-    // ctx.fillStyle = 'red'; 
-    // ctx.fillRect(10, 10, 150, 50); 
-    // ctx.fillStyle = 'white'; 
-    // ctx.font = "16px 'Press Start 2P'";
-    // ctx.fillText(`Villains: ${villains.length}`, 15, 30); 
-    // ctx.fillText(`Frame: ${frameCount}`, 15, 50);   
-
     animationFrameId = requestAnimationFrame(gameLoop);
 }
-function getEventPosition(event) { /* ... (이전 답변과 동일) ... */ const rect = canvas.getBoundingClientRect(); const clientX = event.type.startsWith('touch') ? event.touches[0].clientX : event.clientX; const clientY = event.type.startsWith('touch') ? event.touches[0].clientY : event.clientY; return { x: clientX - rect.left, y: clientY - rect.top };}
+function getEventPosition(event) { /* ... (이전과 동일) ... */ const rect = canvas.getBoundingClientRect(); const clientX = event.type.startsWith('touch') ? event.touches[0].clientX : event.clientX; const clientY = event.type.startsWith('touch') ? event.touches[0].clientY : event.clientY; return { x: clientX - rect.left, y: clientY - rect.top };}
 
-function startSlicing(event) { /* ... (이전 답변과 동일) ... */ 
-    if (isFrozen || gameOver) return; 
+function startSlicing(event) { /* ... (이전과 동일, 디버깅 로그 포함) ... */ 
+    console.log("startSlicing triggered by event type:", event.type); 
+    if (isFrozen || gameOver) {
+        console.log("Slicing ignored - isFrozen:", isFrozen, "gameOver:", gameOver); 
+        return; 
+    }
     if (event.type.startsWith('touch')) event.preventDefault();
     isSlicing = true; const pos = getEventPosition(event); 
     currentSlicePath = [pos]; sliceTrail = [{...pos, alpha: 1}];
 }
-function continueSlicing(event) { /* ... (이전 답변과 동일) ... */ 
+function continueSlicing(event) { /* ... (이전과 동일, isFrozen 체크 포함) ... */ 
     if (isFrozen || !isSlicing || gameOver) return; 
     if (event.type.startsWith('touch')) event.preventDefault();
     const pos = getEventPosition(event); currentSlicePath.push(pos); 
@@ -319,39 +323,22 @@ function continueSlicing(event) { /* ... (이전 답변과 동일) ... */
     sliceTrail.push({...pos, alpha: 1}); 
     if (Math.random() < 0.5) sliceParticles.push(new SliceParticle(pos.x, pos.y));
 }
-function endSlicing(event) { /* ... (이전 답변과 동일) ... */
+function endSlicing(event) { /* ... (이전과 동일, isFrozen 체크 포함) ... */
     if (!isSlicing || gameOver) { isSlicing = false; currentSlicePath = []; return; }
     const wasFrozen = isFrozen; isSlicing = false; 
     if (!wasFrozen && currentSlicePath.length >= MIN_SLICE_POINTS) { checkSliceCollisions(); }
     currentSlicePath = [];
  }
-
-function isLineIntersectingCircle(p1, p2, circleCenter, radius) {
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const lenSq = dx * dx + dy * dy;
-
-    // 선분이 점일 경우 (p1과 p2가 같은 위치)
-    if (lenSq === 0) {
-        // p1(또는 p2)과 circleCenter 사이의 거리를 확인
-        return Math.hypot(p1.x - circleCenter.x, p1.y - circleCenter.y) < radius;
-    }
-
-    // t는 (circleCenter - p1) 벡터를 (p2 - p1) 벡터에 투영한 값 (0과 1 사이로 정규화됨)
-    let t = ((circleCenter.x - p1.x) * dx + (circleCenter.y - p1.y) * dy) / lenSq;
-    
-    // t 값을 0과 1 사이로 제한하여 선분 내의 가장 가까운 점을 찾도록 함
-    t = Math.max(0, Math.min(1, t));
-
-    // 선분 위의 가장 가까운 점의 좌표
-    const closestX = p1.x + t * dx;
-    const closestY = p1.y + t * dy;
-
-    // 이 가장 가까운 점과 circleCenter 사이의 거리를 확인
+function isLineIntersectingCircle(p1, p2, circleCenter, radius) { /* ... (이전과 동일, circleCenter 사용) ... */ 
+    const dx = p2.x - p1.x, dy = p2.y - p1.y, lenSq = dx * dx + dy * dy; 
+    if (lenSq === 0) return Math.hypot(p1.x - circleCenter.x, p1.y - circleCenter.y) < radius; 
+    let t = ((circleCenter.x - p1.x) * dx + (circleCenter.y - p1.y) * dy) / lenSq; 
+    t = Math.max(0, Math.min(1, t)); 
+    const closestX = p1.x + t * dx, closestY = p1.y + t * dy; 
     return Math.hypot(circleCenter.x - closestX, circleCenter.y - closestY) < radius;
 }
 
-function checkSliceCollisions() { /* ... (이전 답변과 동일) ... */
+function checkSliceCollisions() { /* ... (이전과 동일) ... */
     let slicedAnythingThisSwipe = false; let pointsEarnedThisSwipe = 0; let villainsSlicedInThisSwipe = 0;
     for (let i = villains.length - 1; i >= 0; i--) {
         const villain = villains[i]; if (villain.sliced) continue;
@@ -399,7 +386,7 @@ function checkSliceCollisions() { /* ... (이전 답변과 동일) ... */
     if (slicedAnythingThisSwipe && !gameOver && !isFrozen) { if (comboResetTimer) clearTimeout(comboResetTimer); comboResetTimer = setTimeout(resetCombo, COMBO_RESET_DELAY); }
 }
 
-function startGame() {
+function startGame() { /* ... (이전과 동일, 디버깅 로그 및 resizeCanvas 호출 시점 포함) ... */
     console.log("startGame() function called"); 
     score = 0; lives = 3; villains = []; particles = []; sliceParticles = [];
     sliceTrail = []; currentSlicePath = []; 
@@ -408,20 +395,13 @@ function startGame() {
     isSlicing = false; gameSpeed = 1;
     isGoldRushActive = false; goldRushEndTime = 0; frameCount = 0; 
     isFrozen = false; frozenEndTime = 0;
-    
-    resetCurrentGameStats(); 
-    resetCombo(); 
-    updateComboDisplay(); 
-    scoreDisplay.textContent = score; 
-    livesDisplay.textContent = lives;
-
+    resetCurrentGameStats(); resetCombo(); updateComboDisplay(); 
+    scoreDisplay.textContent = score; livesDisplay.textContent = lives;
     if(questCompletionMessagesDiv) questCompletionMessagesDiv.innerHTML = ""; 
-    
     showScreen(gameContainer); 
     console.log("showScreen(gameContainer) called"); 
-    
     requestAnimationFrame(() => { 
-        resizeCanvas(); // ⭐️ gameContainer가 표시된 후 호출
+        resizeCanvas(); 
         if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
         window.villainSpawnInterval = setInterval(() => { if (!isGoldRushActive) { spawnVillain(); }}, Math.max(250, 750 - score * 1.5));
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -431,22 +411,18 @@ function startGame() {
     console.log("Game Started logic initiated!");
 }
 
-function showGameOverScreen() { 
+function showGameOverScreen() { /* ... (이전과 동일, 디버깅 로그 포함) ... */
     console.log("showGameOverScreen() called. Final score:", score); 
     if(finalScoreDisplay) finalScoreDisplay.textContent = score; 
     else console.warn("finalScoreDisplay element not found!");
     console.log("finalScoreDisplay updated."); 
-
     currentGameStats.score = score; 
     checkAndAwardQuests(); 
     console.log("checkAndAwardQuests() completed."); 
-
     showScreen(gameOverScreen); 
     console.log("#gameOverScreen should be visible now. Check its style in Elements tab if not visible."); 
-    
     if (window.villainSpawnInterval) clearInterval(window.villainSpawnInterval);
     isGoldRushActive = false; isFrozen = false; resetCombo(); 
-    
     try { 
         if (WebApp && WebApp.sendData) { 
             console.log("Attempting to send score to Telegram:", score); 
@@ -458,11 +434,11 @@ function showGameOverScreen() {
     console.log("showGameOverScreen() finished."); 
 }
 
-// --- 이벤트 리스너 ---
-// DOM 요소들이 로드된 후에 이벤트 리스너를 추가하는 것이 안전합니다.
+// --- 이벤트 리스너 (DOMContentLoaded로 감싸서 DOM 로드 후 실행 보장) ---
 document.addEventListener('DOMContentLoaded', (event) => {
     console.log("DOM fully loaded and parsed. Setting up event listeners and initial state.");
 
+    // Canvas가 실제로 존재하는지 확인 후 이벤트 리스너 추가
     if(canvas) {
         canvas.addEventListener('mousedown', startSlicing); 
         canvas.addEventListener('mousemove', continueSlicing);
@@ -473,7 +449,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         canvas.addEventListener('touchend', endSlicing);
         canvas.addEventListener('touchcancel', endSlicing);
     } else {
-        console.error("Canvas element not found for attaching event listeners.");
+        console.error("Canvas element not found. Game input will not work.");
     }
 
     if (playGameButton) { 
@@ -482,7 +458,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             startGame(); 
         });
     }
-    if (startButton) { 
+    if (startButton) { // 만약 이전 시작 화면을 다른 용도로 사용한다면
         startButton.addEventListener('click', () => {
             console.log("Old Start Screen 'Start Game' button clicked!");
             startGame();
@@ -501,14 +477,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
             showScreen(mainHomeScreen); 
         }); 
     }
-    if (questsButton) { questsButton.addEventListener('click', () => { alert("Quests coming soon!"); });}
-    if (shopButton) { shopButton.addEventListener('click', () => { alert("Shop coming soon!"); });}
+    if (questsButton) { questsButton.addEventListener('click', () => { alert("Quests feature coming soon!"); });}
+    if (shopButton) { shopButton.addEventListener('click', () => { alert("Shop feature coming soon!"); });}
 
     window.addEventListener('resize', resizeCanvas);
 
     // --- 초기화 ---
     loadData(); 
     updateComboDisplay(); 
-    showScreen(mainHomeScreen); 
-    resizeCanvas(); // DOM 로드 후, 홈 화면이 표시된 상태에서 호출
+    showScreen(mainHomeScreen); // 시작 시 메인 홈 화면 표시
+    resizeCanvas(); // DOM 로드 후, 홈 화면이 표시된 상태에서 초기 캔버스 크기 설정 시도
 });
