@@ -325,7 +325,31 @@ function endSlicing(event) { /* ... (이전 답변과 동일) ... */
     if (!wasFrozen && currentSlicePath.length >= MIN_SLICE_POINTS) { checkSliceCollisions(); }
     currentSlicePath = [];
  }
-function isLineIntersectingCircle(p1, p2, circleCenter, radius) { /* ... (이전 답변과 동일) ... */ const dx = p2.x - p1.x, dy = p2.y - p1.y, lenSq = dx * dx + dy * dy; if (lenSq === 0) return Math.hypot(p1.x - circleCenter.x, p1.y - circleCenter.y) < radius; let t = ((circleCenter.x - p1.x) * dx + (circleCenter.y - p1.y) * dy) / lenSq; t = Math.max(0, Math.min(1, t)); const closestX = p1.x + t * dx, closestY = p1.y + t * dy; return Math.hypot(center.x - closestX, center.y - closestY) < radius;}
+
+function isLineIntersectingCircle(p1, p2, circleCenter, radius) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const lenSq = dx * dx + dy * dy;
+
+    // 선분이 점일 경우 (p1과 p2가 같은 위치)
+    if (lenSq === 0) {
+        // p1(또는 p2)과 circleCenter 사이의 거리를 확인
+        return Math.hypot(p1.x - circleCenter.x, p1.y - circleCenter.y) < radius;
+    }
+
+    // t는 (circleCenter - p1) 벡터를 (p2 - p1) 벡터에 투영한 값 (0과 1 사이로 정규화됨)
+    let t = ((circleCenter.x - p1.x) * dx + (circleCenter.y - p1.y) * dy) / lenSq;
+    
+    // t 값을 0과 1 사이로 제한하여 선분 내의 가장 가까운 점을 찾도록 함
+    t = Math.max(0, Math.min(1, t));
+
+    // 선분 위의 가장 가까운 점의 좌표
+    const closestX = p1.x + t * dx;
+    const closestY = p1.y + t * dy;
+
+    // 이 가장 가까운 점과 circleCenter 사이의 거리를 확인
+    return Math.hypot(circleCenter.x - closestX, circleCenter.y - closestY) < radius;
+}
 
 function checkSliceCollisions() { /* ... (이전 답변과 동일) ... */
     let slicedAnythingThisSwipe = false; let pointsEarnedThisSwipe = 0; let villainsSlicedInThisSwipe = 0;
